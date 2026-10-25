@@ -1,0 +1,6 @@
+{
+  "name": "EmotionVoice Studio",
+  "description": "AI Voice Generator with Emotions, voice filters, audio recording, and custom pitch & tone controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
