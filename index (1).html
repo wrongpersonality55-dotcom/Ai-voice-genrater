@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Awaaz – Voice Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f0ff;--card:#fff;--ink:#2a1b4d;--soft:#7a6a9c;--violet:#6a47d6;--pink:#ff7a9c;--mint:#2fc9a6;--sun:#ffc857;--line:#e3d8fb}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Baloo 2',sans-serif;background:linear-gradient(160deg,#f6f0ff 0%,#ffeef3 55%,#e8fbf5 100%);color:var(--ink);min-height:100vh;padding:20px 14px 60px}
+.wrap{max-width:640px;margin:0 auto}
+h1{font-size:2.3rem;font-weight:800;margin:6px 0 2px;color:var(--violet)}
+.sub{color:var(--soft);margin:0 0 18px}
+.card{background:var(--card);border-radius:22px;padding:18px;margin-bottom:14px;box-shadow:0 6px 24px rgba(106,71,214,.10)}
+h2{font-size:1.05rem;margin:0 0 10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button,select,textarea,input{font-family:inherit}
+.seg button,.emo button{flex:1;border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:14px;padding:10px 8px;font-size:1rem;font-weight:700;cursor:pointer}
+.seg button.on{background:var(--violet);border-color:var(--violet);color:#fff}
+.emo button.on[data-e="normal"]{background:var(--sun);border-color:var(--sun)}
+.emo button.on[data-e="happy"]{background:var(--mint);border-color:var(--mint);color:#fff}
+.emo button.on[data-e="sad"]{background:var(--pink);border-color:var(--pink);color:#fff}
+.voices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.voice{border:2px solid var(--line);background:#fff;border-radius:18px;padding:12px 6px;cursor:pointer;text-align:center;font-weight:700;font-size:1rem;color:var(--ink)}
+.voice span{display:block;font-size:2rem}
+.voice.on{border-color:var(--violet);background:#efe8ff}
+textarea{width:100%;min-height:120px;border:2px solid var(--line);border-radius:16px;padding:12px;font-size:1.1rem;resize:vertical;color:var(--ink)}
+textarea:focus,input:focus{outline:3px solid #cdbcf7}
+.urdu{font-family:'Noto Nastaliq Urdu',serif;direction:rtl;line-height:2.1}
+.go{width:100%;border:0;border-radius:18px;padding:15px;font-size:1.25rem;font-weight:800;color:#fff;background:linear-gradient(90deg,var(--violet),var(--pink));cursor:pointer}
+.go:disabled{opacity:.6;cursor:wait}
+.msg{margin:10px 0 0;min-height:1.3em;color:var(--soft)}
+.msg.err{color:#c4264a}
+.result{display:none}
+.result audio{width:100%;margin:8px 0}
+.dl{display:inline-block;margin-top:4px;background:var(--mint);color:#fff;text-decoration:none;font-weight:800;padding:11px 20px;border-radius:14px}
+.trans{background:#faf7ff;border-radius:14px;padding:10px 14px;font-size:1.15rem}
+details summary{cursor:pointer;font-weight:700;color:var(--soft)}
+input{width:100%;border:2px solid var(--line);border-radius:12px;padding:10px;margin-top:8px;font-size:1rem}
+small{color:var(--soft)}
+@media(prefers-reduced-motion:no-preference){.voice,.go,.seg button,.emo button{transition:transform .12s}.voice:active,.go:active{transform:scale(.97)}}
+:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Awaaz 🎙️</h1>
+  <p class="sub">Text likho, awaaz chuno, aur download karo.</p>
+
+  <div class="card">
+    <h2>Konsi language?</h2>
+    <div class="row seg" id="dir">
+      <button class="on" data-d="en-ur">English → اردو</button>
+      <button data-d="ur-en">اردو → English</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Apna text likho</h2>
+    <textarea id="text" placeholder="Yahan likho..."></textarea>
+  </div>
+
+  <div class="card">
+    <h2>Awaaz chuno</h2>
+    <div class="voices" id="voices">
+      <button class="voice on" data-v="man"><span>👨</span>Larka (Man)</button>
+      <button class="voice" data-v="woman"><span>👩</span>Larki (Woman)</button>
+      <button class="voice" data-v="boy"><span>👦</span>Chota larka</button>
+      <button class="voice" data-v="girl"><span>👧</span>Choti larki</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Jazbaat (Emotion)</h2>
+    <div class="row emo" id="emo">
+      <button class="on" data-e="normal">😐 Normal</button>
+      <button data-e="happy">😄 Happy</button>
+      <button data-e="sad">😢 Sad</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <details id="keybox">
+      <summary>🔑 API key (sirf ek baar)</summary>
+      <input id="key" type="password" placeholder="AI Studio wali Gemini API key yahan paste karo" autocomplete="off">
+      <small>Key sirf tumhare browser mein save hoti hai. Code ya GitHub par kabhi mat likhna.</small>
+    </details>
+  </div>
+
+  <button class="go" id="go">Awaaz banao ✨</button>
+  <p class="msg" id="msg"></p>
+
+  <div class="card result" id="result">
+    <h2>Tayyar hai!</h2>
+    <div class="trans" id="trans"></div>
+    <audio id="audio" controls></audio>
+    <a class="dl" id="dl" download="awaaz.wav">⬇ Download karo</a>
+  </div>
+</div>
+
+<script>
+// Models (agar Google naam badle to yahan change karo)
+// Pehla model chalta hai; agar na mile to agla try hota hai
+const TEXT_MODELS = ["gemini-3.8-flash","gemini-3.7-flash","gemini-3-flash-preview"];
+const TTS_MODELS  = ["gemini-3.1-flash-tts-preview","gemini-2.5-flash-preview-tts"];
+
+const VOICES = {
+  man:   {name:"Charon", who:"a grown man"},
+  woman: {name:"Kore",   who:"a grown woman"},
+  boy:   {name:"Puck",   who:"a little boy about 6 years old, with a high, small child's voice"},
+  girl:  {name:"Leda",   who:"a little girl about 6 years old, with a high, sweet child's voice"}
+};
+const EMOS = {
+  normal:"in a natural, calm and clear tone",
+  happy:"in a very happy, cheerful, smiling and excited tone",
+  sad:"in a sad, soft, slow and sorrowful tone, almost tearful"
+};
+
+let dir="en-ur", voice="man", emo="normal";
+const $ = id => document.getElementById(id);
+
+function pick(groupId, attr, set){
+  $(groupId).addEventListener("click", e=>{
+    const b = e.target.closest("button"); if(!b) return;
+    [...$(groupId).children].forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); set(b.dataset[attr]);
+    if(groupId==="dir") updateInput();
+  });
+}
+pick("dir","d",v=>dir=v);
+pick("voices","v",v=>voice=v);
+pick("emo","e",v=>emo=v);
+
+function updateInput(){
+  const t=$("text");
+  const ur = dir==="ur-en";
+  t.classList.toggle("urdu", ur);
+  t.placeholder = ur ? "یہاں اردو لکھیں..." : "Write English here...";
+}
+
+try{ $("key").value = localStorage.getItem("awaaz_key")||""; }catch(e){}
+if(!$("key").value) $("keybox").open = true;
+
+function msg(t, err){ $("msg").textContent=t; $("msg").className="msg"+(err?" err":""); }
+
+async function api(models, body){
+  const key = $("key").value.trim();
+  let lastErr;
+  for(const model of models){
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-goog-api-key":key},
+      body:JSON.stringify(body)
+    });
+    const j = await r.json();
+    if(r.ok) return j;
+    lastErr = j.error?.message || "Request fail ho gayi";
+    // Sirf model-naam ke masle par agla model try karo
+    if(!/no longer available|not found|not supported|deprecated|404/i.test(lastErr) && r.status!==404) break;
+  }
+  throw new Error(lastErr);
+}
+
+async function translate(text){
+  const [from,to] = dir==="en-ur" ? ["English","Urdu (Urdu script)"] : ["Urdu","English"];
+  const j = await api(TEXT_MODELS,{
+    systemInstruction:{parts:[{text:`Translate the user's ${from} text to ${to}. Output only the translation, nothing else.`}]},
+    contents:[{parts:[{text}]}]
+  });
+  return j.candidates[0].content.parts[0].text.trim();
+}
+
+function wavFromPcm(b64, rate=24000){
+  const bin = atob(b64), pcm = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) pcm[i]=bin.charCodeAt(i);
+  const h = new DataView(new ArrayBuffer(44));
+  const w=(o,s)=>[...s].forEach((c,i)=>h.setUint8(o+i,c.charCodeAt(0)));
+  w(0,"RIFF"); h.setUint32(4,36+pcm.length,true); w(8,"WAVE"); w(12,"fmt ");
+  h.setUint32(16,16,true); h.setUint16(20,1,true); h.setUint16(22,1,true);
+  h.setUint32(24,rate,true); h.setUint32(28,rate*2,true); h.setUint16(32,2,true); h.setUint16(34,16,true);
+  w(36,"data"); h.setUint32(40,pcm.length,true);
+  return new Blob([h,pcm],{type:"audio/wav"});
+}
+
+async function speak(text){
+  const v = VOICES[voice];
+  const lang = dir==="en-ur" ? "Urdu" : "English";
+  const prompt = `Speak the following ${lang} text as ${v.who}, ${EMOS[emo]}: ${text}`;
+  const j = await api(TTS_MODELS,{
+    contents:[{parts:[{text:prompt}]}],
+    generationConfig:{responseModalities:["AUDIO"],
+      speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:v.name}}}}
+  });
+  const data = j.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+  if(!data) throw new Error("Awaaz nahi bani. Dobara try karo.");
+  return wavFromPcm(data);
+}
+
+$("go").addEventListener("click", async ()=>{
+  const text = $("text").value.trim();
+  if(!$("key").value.trim()){ $("keybox").open=true; return msg("Pehle API key paste karo.",true); }
+  if(!text) return msg("Pehle kuch text likho.",true);
+  try{ localStorage.setItem("awaaz_key",$("key").value.trim()); }catch(e){}
+  $("go").disabled=true; $("result").style.display="none";
+  try{
+    msg("Translate ho raha hai...");
+    const tr = await translate(text);
+    msg("Awaaz ban rahi hai...");
+    const blob = await speak(tr);
+    const url = URL.createObjectURL(blob);
+    $("trans").textContent = tr;
+    $("trans").className = "trans" + (dir==="en-ur" ? " urdu" : "");
+    $("audio").src = url; $("dl").href = url;
+    $("result").style.display="block";
+    $("audio").play().catch(()=>{});
+    msg("");
+  }catch(e){ msg("Error: "+e.message,true); }
+  $("go").disabled=false;
+});
+updateInput();
+</script>
+</body>
+</html>
